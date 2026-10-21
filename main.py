@@ -30,27 +30,34 @@ def check_diameter_class(d):
         return "крупное сечение"
 
 def main():
-    while True: 
+    is_running = True
+    
+    while is_running: 
         print("\n=== Расчет расхода жидкости в трубопроводе ===")
         print("1 - Круглое сечение")
         print("2 - Прямоугольное сечение")
         print("3 - Кольцевое сечение")
         print("0 - Выход из программы")
         
-        while True:
+        is_mode_valid = False
+        mode = -1
+        
+        while not is_mode_valid:
             try:
                 mode = int(input("Выберите тип сечения (0-3): "))
                 if mode in (0, 1, 2, 3):
-                    break
-                print("Ошибка: недопустимый пункт меню.")
-                print("Правильный вид ввода: целое число от 0 до 3.")
+                    is_mode_valid = True
+                else:
+                    print("Ошибка: недопустимый пункт меню.")
+                    print("Правильный вид ввода: целое число от 0 до 3.")
             except ValueError:
                 print("Ошибка: введены недопустимые символы.")
                 print("Правильный вид ввода: целое число от 0 до 3.")
 
         if mode == 0:
             print("Выход из программы.")
-            break
+            is_running = False  
+            continue            
 
         v = get_number("\nСкорость потока v (м/с) [0.1..10] (или 0 - назад): ", 0.1, 10.0, allow_back=True)
         
@@ -90,24 +97,26 @@ def main():
                 area = a_m * b_m
                 
             case 3:
-            
                 print("Режим: Кольцевое сечение")
-                # Внешний диаметр начинаем с 6, чтобы осталось место для внутреннего (мин. 5)
                 D = get_number("Внешний диаметр D (мм) [6..500] (или 0 - назад): ", 6.0, 500.0, allow_back=True)
                 if D is None:
                     print("Возврат в главное меню.")
                     continue
                 
-                while True:
+                is_d_valid = False
+                d = None
+                
+                while not is_d_valid:
                     d = get_number("Внутренний диаметр d (мм) [5..500] (или 0 - назад): ", 5.0, 500.0, allow_back=True)
-                    if d is None:
-                        break 
                     
-                    if d < D:
-                        break
+                    if d is None:
+                        is_d_valid = True  
                     else:
-                        print(f"Ошибка: внутренний диаметр ({d}) должен быть меньше внешнего ({D}).")
-                        print(f"Введите значение от 5.0 до {D - 0.1}.")
+                        if d < D:
+                            is_d_valid = True  
+                        else:
+                            print(f"Ошибка: внутренний диаметр ({d}) должен быть меньше внешнего ({D}).")
+                            print(f"Введите значение от 5.0 до {D - 0.1}.")
 
                 if d is None:
                     print("Возврат в главное меню.")
@@ -116,3 +125,14 @@ def main():
                 D_m = D / 1000.0
                 d_m = d / 1000.0
                 area = math.pi * ((D_m ** 2) - (d_m ** 2)) / 4.0
+
+        Q = area * v * 3600
+
+        print("\n=== Результаты ===")
+        print(f"Площадь: {area:.5f} м2")
+        print(f"Расход: {Q:.2f} м3/ч")
+        
+        input("\nНажмите Enter, чтобы вернуться в меню...")
+
+if __name__ == "__main__":
+    main()
